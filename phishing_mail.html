@@ -1,0 +1,1824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Phishing Detector</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --primary: #2196f3;
+            --primary-dark: #1e88e5;
+            --secondary: #2c3e50;
+            --danger: #f44336;
+            --warning: #ff9800;
+            --success: #4caf50;
+            --info: #00bcd4;
+            --dark: #0d1b2a;
+            --darker: #1a2a3a;
+            --light: #e0e0e0;
+            --gray: #90a4ae;
+            --card-bg: rgba(25, 35, 45, 0.85);
+            --input-bg: rgba(15, 25, 35, 0.8);
+            --admin-panel: #1e3a5f;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--dark), var(--darker));
+            color: var(--light);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(79, 195, 247, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(79, 195, 247, 0.1) 0%, transparent 70%);
+            z-index: -1;
+            animation: pulse 8s infinite alternate;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(0.8); opacity: 0.3; }
+            100% { transform: scale(1.2); opacity: 0.6; }
+        }
+        
+        header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            color: #4fc3f7;
+            text-shadow: 0 0 15px rgba(79, 195, 247, 0.4);
+            position: relative;
+        }
+        
+        header p {
+            font-size: 1.2rem;
+            color: var(--gray);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(79, 195, 247, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), #21cbf3);
+        }
+        
+        .card-title {
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            color: #4fc3f7;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(79, 195, 247, 0.1);
+        }
+        
+        .auth-container {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .auth-form {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #bbdefb;
+        }
+        
+        .input-with-icon {
+            position: relative;
+        }
+        
+        .input-with-icon i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+        
+        .input-with-icon input {
+            padding-left: 40px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
+            border: 1px solid var(--secondary);
+            background: var(--input-bg);
+            color: var(--light);
+            font-size: 1.05rem;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #4fc3f7;
+            box-shadow: 0 0 0 4px rgba(79, 195, 247, 0.25);
+        }
+        
+        .btn-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex: 1;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(to right, var(--primary), #21cbf3);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: rgba(55, 71, 79, 0.8);
+            color: #bbdefb;
+        }
+        
+        .btn-admin {
+            background: linear-gradient(to right, #9c27b0, #673ab7);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(to right, var(--danger), #ff5252);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(to right, var(--primary-dark), #00b0ff);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(69, 90, 100, 0.9);
+        }
+        
+        .btn-admin:hover {
+            background: linear-gradient(to right, #7b1fa2, #512da8);
+        }
+        
+        .btn-danger:hover {
+            background: linear-gradient(to right, #d32f2f, #ff1744);
+        }
+        
+        .auth-switch {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--gray);
+        }
+        
+        .auth-switch a {
+            color: #4fc3f7;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .auth-switch a:hover {
+            text-decoration: underline;
+        }
+        
+        .app-content {
+            display: none;
+        }
+        
+        .user-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(79, 195, 247, 0.2);
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(to right, var(--primary), #21cbf3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .user-actions {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .logout-btn {
+            background: none;
+            border: none;
+            color: #f44336;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .input-section {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .input-group label {
+            font-weight: 600;
+            color: #bbdefb;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 16px;
+            border-radius: 10px;
+            border: 1px solid var(--secondary);
+            background: var(--input-bg);
+            color: var(--light);
+            font-size: 1.05rem;
+            transition: all 0.3s ease;
+            min-height: 180px;
+            resize: vertical;
+            line-height: 1.5;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #4fc3f7;
+            box-shadow: 0 0 0 4px rgba(79, 195, 247, 0.25);
+        }
+        
+        .result-section {
+            display: none;
+            margin-top: 30px;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 40px 0 20px;
+            color: var(--gray);
+            font-size: 1rem;
+            border-top: 1px solid rgba(79, 195, 247, 0.2);
+            margin-top: 20px;
+        }
+        
+        .footer strong {
+            color: #4fc3f7;
+        }
+        
+        .forgot-password-form {
+            display: none;
+        }
+        
+        .password-strength {
+            height: 5px;
+            background: var(--secondary);
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        
+        .strength-meter {
+            height: 100%;
+            width: 0%;
+            background: var(--danger);
+            transition: width 0.3s;
+        }
+        
+        .password-rules {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+        
+        .password-rules ul {
+            padding-left: 20px;
+            margin-top: 5px;
+        }
+        
+        .password-rules li {
+            margin-bottom: 3px;
+        }
+        
+        .valid {
+            color: var(--success);
+        }
+        
+        .invalid {
+            color: var(--danger);
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px 0;
+        }
+        
+        .spinner {
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-left-color: #4fc3f7;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 25px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading p {
+            font-size: 1.2rem;
+            color: var(--gray);
+        }
+        
+        .auth-message {
+            padding: 12px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+            display: none;
+        }
+        
+        .success-message {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid var(--success);
+            color: #a5d6a7;
+        }
+        
+        .error-message {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid var(--danger);
+            color: #ffab91;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--gray);
+        }
+        
+        /* Admin Panel Styles */
+        .admin-panel {
+            display: none;
+            background: var(--admin-panel);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(79, 195, 247, 0.2);
+        }
+        
+        .admin-title {
+            font-size: 1.8rem;
+            color: #bb86fc;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: rgba(30, 40, 50, 0.6);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .users-table th {
+            background: rgba(55, 71, 79, 0.8);
+            padding: 15px;
+            text-align: left;
+            color: #4fc3f7;
+            font-weight: 600;
+        }
+        
+        .users-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(79, 195, 247, 0.1);
+        }
+        
+        .users-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .users-table tr:hover {
+            background: rgba(40, 50, 60, 0.8);
+        }
+        
+        .admin-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        /* Analysis Results Styles */
+        .result-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(79, 195, 247, 0.2);
+        }
+        
+        .result-title {
+            font-size: 1.4rem;
+            color: #4fc3f7;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .result-status {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .status-text {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 700;
+        }
+        
+        .result-content {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .result-box {
+            background: rgba(20, 30, 40, 0.8);
+            border-radius: 12px;
+            padding: 25px;
+            border-left: 5px solid;
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+        
+        .result-box:hover {
+            transform: translateY(-5px);
+        }
+        
+        .result-box.danger {
+            border-left-color: var(--danger);
+        }
+        
+        .result-box.warning {
+            border-left-color: var(--warning);
+        }
+        
+        .result-box.safe {
+            border-left-color: var(--success);
+        }
+        
+        .result-box.info {
+            border-left-color: var(--info);
+        }
+        
+        .box-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            color: var(--light);
+            font-size: 1.3rem;
+        }
+        
+        .box-content {
+            padding-left: 15px;
+            border-left: 3px solid rgba(79, 195, 247, 0.3);
+            margin-left: 8px;
+        }
+        
+        .red-flag-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .flag-item {
+            display: flex;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(30, 40, 50, 0.6);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            align-items: flex-start;
+        }
+        
+        .flag-item:hover {
+            background: rgba(40, 50, 60, 0.8);
+            transform: translateX(8px);
+        }
+        
+        .flag-icon {
+            font-size: 1.6rem;
+            margin-top: 4px;
+            min-width: 30px;
+            text-align: center;
+        }
+        
+        .flag-content h4 {
+            margin-bottom: 8px;
+            font-size: 1.15rem;
+            color: #ff9800;
+        }
+        
+        .flag-content p {
+            color: #b0bec5;
+            line-height: 1.6;
+        }
+        
+        .protection-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+        }
+        
+        .protection-card {
+            flex: 1;
+            min-width: 280px;
+            background: rgba(30, 40, 50, 0.6);
+            border-radius: 12px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .protection-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            background: rgba(40, 50, 60, 0.8);
+        }
+        
+        .protection-icon {
+            font-size: 2.8rem;
+            color: #4caf50;
+            text-align: center;
+        }
+        
+        .protection-content h4 {
+            margin-bottom: 12px;
+            color: #bbdefb;
+            font-size: 1.2rem;
+        }
+        
+        .protection-content p {
+            color: #b0bec5;
+            line-height: 1.6;
+        }
+        
+        .risk-meter {
+            width: 100%;
+            height: 20px;
+            background: #2c3e50;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .risk-level {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s ease;
+        }
+        
+        .risk-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 0.9rem;
+            color: #90a4ae;
+        }
+        
+        .ai-response {
+            background: rgba(30, 40, 50, 0.6);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 3px solid var(--info);
+        }
+        
+        .ai-response h4 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: #4fc3f7;
+        }
+        
+        .ai-content {
+            color: #b0bec5;
+            line-height: 1.6;
+        }
+        
+        .severity {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        
+        .critical {
+            background: var(--danger);
+        }
+        
+        .high {
+            background: #ff5722;
+        }
+        
+        .medium {
+            background: var(--warning);
+        }
+        
+        .low {
+            background: #ffc107;
+        }
+        
+        .safe-text {
+            color: var(--success);
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .auth-container {
+                flex-direction: column;
+            }
+            
+            .btn-container {
+                flex-direction: column;
+            }
+            
+            header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .protection-list {
+                flex-direction: column;
+            }
+            
+            .result-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .users-table {
+                display: block;
+                overflow-x: auto;
+            }
+            
+            .admin-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-shield-alt"></i> Secure Phishing Detector</h1>
+            <p>Professional email security analysis with user management</p>
+        </header>
+        
+        <!-- Authentication Container -->
+        <div class="card" id="authContainer">
+            <div class="auth-container">
+                <!-- Login Form -->
+                <div class="auth-form" id="loginForm">
+                    <h2 class="card-title"><i class="fas fa-sign-in-alt"></i> Login to Your Account</h2>
+                    
+                    <div class="auth-message" id="loginMessage"></div>
+                    
+                    <div class="form-group">
+                        <label for="loginEmail">Email Address</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="loginEmail" placeholder="your.email@example.com">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="loginPassword" placeholder="Enter your password">
+                            <span class="password-toggle" onclick="togglePassword('loginPassword')">
+                                <i class="fas fa-eye"></i>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="btn-container">
+                        <button class="btn btn-primary" onclick="login()">
+                            <i class="fas fa-sign-in-alt"></i> Login
+                        </button>
+                        <button class="btn btn-admin" onclick="showAdminLogin()">
+                            <i class="fas fa-user-cog"></i> Admin Login
+                        </button>
+                    </div>
+                    
+                    <div class="auth-switch">
+                        Don't have an account? <a href="#" onclick="showSignupForm()">Sign up now</a>
+                    </div>
+                </div>
+                
+                <!-- Signup Form -->
+                <div class="auth-form" id="signupForm" style="display: none;">
+                    <h2 class="card-title"><i class="fas fa-user-plus"></i> Create New Account</h2>
+                    
+                    <div class="auth-message" id="signupMessage"></div>
+                    
+                    <div class="form-group">
+                        <label for="signupName">Full Name</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="signupName" placeholder="John Smith">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signupEmail">Email Address</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="signupEmail" placeholder="your.email@example.com">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signupPassword">Password</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="signupPassword" placeholder="Create a strong password" oninput="checkPasswordStrength()">
+                            <span class="password-toggle" onclick="togglePassword('signupPassword')">
+                                <i class="fas fa-eye"></i>
+                            </span>
+                        </div>
+                        <div class="password-strength">
+                            <div class="strength-meter" id="passwordStrength"></div>
+                        </div>
+                        <div class="password-rules">
+                            <p>Password must contain:</p>
+                            <ul>
+                                <li id="lengthRule">At least 8 characters</li>
+                                <li id="uppercaseRule">One uppercase letter</li>
+                                <li id="numberRule">One number</li>
+                                <li id="specialRule">One special character</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signupConfirm">Confirm Password</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="signupConfirm" placeholder="Confirm your password">
+                            <span class="password-toggle" onclick="togglePassword('signupConfirm')">
+                                <i class="fas fa-eye"></i>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="btn-container">
+                        <button class="btn btn-primary" onclick="signup()">
+                            <i class="fas fa-user-plus"></i> Create Account
+                        </button>
+                    </div>
+                    
+                    <div class="auth-switch">
+                        Already have an account? <a href="#" onclick="showLoginForm()">Log in</a>
+                    </div>
+                </div>
+                
+                <!-- Admin Login Form -->
+                <div class="auth-form" id="adminLoginForm" style="display: none;">
+                    <h2 class="card-title"><i class="fas fa-user-cog"></i> Admin Login</h2>
+                    
+                    <div class="auth-message" id="adminMessage"></div>
+                    
+                    <div class="form-group">
+                        <label for="adminEmail">Admin Email</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="adminEmail" placeholder="admin@example.com">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="adminPassword">Password</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="adminPassword" placeholder="Enter admin password">
+                            <span class="password-toggle" onclick="togglePassword('adminPassword')">
+                                <i class="fas fa-eye"></i>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="btn-container">
+                        <button class="btn btn-admin" onclick="adminLogin()">
+                            <i class="fas fa-sign-in-alt"></i> Login as Admin
+                        </button>
+                        <button class="btn btn-secondary" onclick="showLoginForm()">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Application Content (Visible after login) -->
+        <div class="app-content" id="appContent">
+            <div class="user-bar">
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">JS</div>
+                    <div>
+                        <h3 id="userName">John Smith</h3>
+                        <p id="userEmail">john.smith@example.com</p>
+                    </div>
+                </div>
+                
+                <div class="user-actions">
+                    <button class="logout-btn" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-envelope"></i> Analyze Email Content</h2>
+                <div class="input-section">
+                    <div class="input-group">
+                        <label for="emailContent"><i class="fas fa-align-left"></i> Paste email content:</label>
+                        <textarea id="emailContent" placeholder="Paste the email content you want to analyze here..."></textarea>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="emailUrl"><i class="fas fa-link"></i> Suspicious URL in email (optional):</label>
+                        <input type="text" id="emailUrl" placeholder="https://example.com">
+                    </div>
+                    
+                    <div class="btn-container">
+                        <button class="btn btn-primary" id="analyzeBtn">
+                            <i class="fas fa-search"></i> Analyze for Phishing
+                        </button>
+                        <button class="btn btn-secondary" id="clearBtn">
+                            <i class="fas fa-trash-alt"></i> Clear
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Analyzing content for phishing indicators...</p>
+                    <p>Scanning against threat databases and analyzing patterns...</p>
+                </div>
+                
+                <div class="result-section" id="resultSection">
+                    <div class="result-header">
+                        <h3 class="result-title"><i class="fas fa-file-medical-alt"></i> Analysis Results</h3>
+                        <div class="result-status">Status: <span class="status-text" id="resultStatus">Checking...</span></div>
+                    </div>
+                    
+                    <div class="risk-meter">
+                        <div class="risk-level" id="riskLevel" style="width: 0%; background: #4caf50;"></div>
+                    </div>
+                    <div class="risk-labels">
+                        <span>Low Risk</span>
+                        <span>Medium Risk</span>
+                        <span>High Risk</span>
+                        <span>Critical</span>
+                    </div>
+                    
+                    <div class="result-content">
+                        <div class="result-box danger">
+                            <div class="box-title">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <h3>Phishing Red Flags Detected</h3>
+                            </div>
+                            <div class="box-content">
+                                <div class="red-flag-list" id="redFlagList">
+                                    <!-- Red flags will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="result-box info">
+                            <div class="box-title">
+                                <i class="fas fa-link"></i>
+                                <h3>URL Analysis</h3>
+                            </div>
+                            <div class="box-content">
+                                <div class="red-flag-list" id="urlAnalysis">
+                                    <!-- URL analysis will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="ai-response">
+                            <h4><i class="fas fa-robot"></i> Security Assessment</h4>
+                            <div class="ai-content" id="aiAssessment">
+                                <!-- AI assessment will be populated here -->
+                            </div>
+                        </div>
+                        
+                        <div class="result-box safe">
+                            <div class="box-title">
+                                <i class="fas fa-shield-alt"></i>
+                                <h3>Protection Measures</h3>
+                            </div>
+                            <div class="box-content">
+                                <div class="protection-list" id="protectionList">
+                                    <!-- Protection measures will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Admin Panel -->
+        <div class="admin-panel" id="adminPanel">
+            <div class="admin-header">
+                <h2 class="admin-title"><i class="fas fa-user-shield"></i> System Administration</h2>
+                <button class="logout-btn" onclick="adminLogout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+            
+            <div class="card">
+                <div class="user-bar">
+                    <div class="user-info">
+                        <div class="user-avatar" style="background: linear-gradient(to right, #9c27b0, #673ab7);">
+                            <i class="fas fa-user-cog"></i>
+                        </div>
+                        <div>
+                            <h3>Administrator</h3>
+                            <p>System Management Panel</p>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-actions">
+                        <button class="btn btn-primary" onclick="refreshUsers()">
+                            <i class="fas fa-sync-alt"></i> Refresh Users
+                        </button>
+                        <button class="btn btn-secondary" onclick="exportUsers()">
+                            <i class="fas fa-download"></i> Export Data
+                        </button>
+                        <button class="btn btn-danger" onclick="deleteAllUsers()">
+                            <i class="fas fa-trash"></i> Delete All Users
+                        </button>
+                    </div>
+                </div>
+                
+                <h3 class="card-title"><i class="fas fa-users"></i> Registered Users</h3>
+                
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Password</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <!-- Users will be populated here -->
+                    </tbody>
+                </table>
+                
+                <div class="auth-switch" style="margin-top: 20px;">
+                    Total Users: <strong id="userCount">0</strong>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>© 2025 Secure Phishing Detector | Developed by <strong>YUSTER SECURITYSOLUTION</strong></p>
+            <p style="margin-top: 10px; font-size: 0.9rem;">Enterprise-grade security with user management</p>
+        </div>
+    </div>
+    
+    <script>
+        // User accounts storage (database simulation using localStorage)
+        const users = JSON.parse(localStorage.getItem('phishing_users')) || [];
+        
+        // Admin credentials
+        const ADMIN_EMAIL = "admin@phishingdetector.com";
+        const ADMIN_PASSWORD = "AdminSecure123!";
+        
+        // Current user session
+        let currentUser = null;
+        let isAdmin = false;
+        
+        // DOM Elements
+        const authContainer = document.getElementById('authContainer');
+        const appContent = document.getElementById('appContent');
+        const adminPanel = document.getElementById('adminPanel');
+        const loginForm = document.getElementById('loginForm');
+        const signupForm = document.getElementById('signupForm');
+        const adminLoginForm = document.getElementById('adminLoginForm');
+        const userName = document.getElementById('userName');
+        const userEmail = document.getElementById('userEmail');
+        const userAvatar = document.getElementById('userAvatar');
+        const usersTableBody = document.getElementById('usersTableBody');
+        const userCount = document.getElementById('userCount');
+        
+        // Check if user is already logged in
+        function checkSession() {
+            const user = JSON.parse(localStorage.getItem('current_user'));
+            if (user) {
+                // Check if it's an admin session
+                if (user.email === ADMIN_EMAIL) {
+                    isAdmin = true;
+                    showAdminPanel();
+                } else {
+                    currentUser = user;
+                    showApp();
+                }
+            }
+        }
+        
+        // Show the application content
+        function showApp() {
+            if (currentUser) {
+                authContainer.style.display = 'none';
+                appContent.style.display = 'block';
+                adminPanel.style.display = 'none';
+                
+                userName.textContent = currentUser.name;
+                userEmail.textContent = currentUser.email;
+                userAvatar.textContent = currentUser.avatar;
+                
+                // Initialize the phishing detector
+                initPhishingDetector();
+            }
+        }
+        
+        // Show admin panel
+        function showAdminPanel() {
+            authContainer.style.display = 'none';
+            appContent.style.display = 'none';
+            adminPanel.style.display = 'block';
+            
+            // Load users into the table
+            loadUsers();
+        }
+        
+        // Load users into admin table
+        function loadUsers() {
+            // Get users from localStorage
+            const users = JSON.parse(localStorage.getItem('phishing_users')) || [];
+            
+            // Clear table body
+            usersTableBody.innerHTML = '';
+            
+            // Add users to table
+            users.forEach((user, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${user.name}</td>
+                    <td>${user.email}</td>
+                    <td>${user.password}</td>
+                    <td>${new Date(user.createdAt).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn btn-danger" onclick="deleteUser('${user.email}')">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </td>
+                `;
+                usersTableBody.appendChild(row);
+            });
+            
+            // Update user count
+            userCount.textContent = users.length;
+        }
+        
+        // Show login form
+        function showLoginForm() {
+            loginForm.style.display = 'block';
+            signupForm.style.display = 'none';
+            adminLoginForm.style.display = 'none';
+            document.getElementById('loginMessage').style.display = 'none';
+        }
+        
+        // Show signup form
+        function showSignupForm() {
+            loginForm.style.display = 'none';
+            signupForm.style.display = 'block';
+            adminLoginForm.style.display = 'none';
+            document.getElementById('signupMessage').style.display = 'none';
+        }
+        
+        // Show admin login form
+        function showAdminLogin() {
+            loginForm.style.display = 'none';
+            signupForm.style.display = 'none';
+            adminLoginForm.style.display = 'block';
+            document.getElementById('adminMessage').style.display = 'none';
+        }
+        
+        // Toggle password visibility
+        function togglePassword(id) {
+            const input = document.getElementById(id);
+            const icon = input.nextElementSibling.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+        
+        // Check password strength
+        function checkPasswordStrength() {
+            const password = document.getElementById('signupPassword').value;
+            const strengthMeter = document.getElementById('passwordStrength');
+            const lengthRule = document.getElementById('lengthRule');
+            const uppercaseRule = document.getElementById('uppercaseRule');
+            const numberRule = document.getElementById('numberRule');
+            const specialRule = document.getElementById('specialRule');
+            
+            let strength = 0;
+            
+            // Check length
+            if (password.length >= 8) {
+                strength += 25;
+                lengthRule.classList.add('valid');
+                lengthRule.classList.remove('invalid');
+            } else {
+                lengthRule.classList.remove('valid');
+                lengthRule.classList.add('invalid');
+            }
+            
+            // Check uppercase
+            if (/[A-Z]/.test(password)) {
+                strength += 25;
+                uppercaseRule.classList.add('valid');
+                uppercaseRule.classList.remove('invalid');
+            } else {
+                uppercaseRule.classList.remove('valid');
+                uppercaseRule.classList.add('invalid');
+            }
+            
+            // Check numbers
+            if (/\d/.test(password)) {
+                strength += 25;
+                numberRule.classList.add('valid');
+                numberRule.classList.remove('invalid');
+            } else {
+                numberRule.classList.remove('valid');
+                numberRule.classList.add('invalid');
+            }
+            
+            // Check special characters
+            if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+                strength += 25;
+                specialRule.classList.add('valid');
+                specialRule.classList.remove('invalid');
+            } else {
+                specialRule.classList.remove('valid');
+                specialRule.classList.add('invalid');
+            }
+            
+            strengthMeter.style.width = `${strength}%`;
+            
+            // Set color based on strength
+            if (strength < 50) {
+                strengthMeter.style.background = 'var(--danger)';
+            } else if (strength < 75) {
+                strengthMeter.style.background = 'var(--warning)';
+            } else {
+                strengthMeter.style.background = 'var(--success)';
+            }
+        }
+        
+        // Login function
+        function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const message = document.getElementById('loginMessage');
+            
+            // Reset message
+            message.style.display = 'none';
+            
+            // Find user
+            const user = users.find(u => u.email === email && u.password === password);
+            
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('current_user', JSON.stringify(user));
+                showApp();
+            } else {
+                message.textContent = 'Invalid email or password. Please try again.';
+                message.className = 'auth-message error-message';
+                message.style.display = 'block';
+            }
+        }
+        
+        // Admin login function
+        function adminLogin() {
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+            const message = document.getElementById('adminMessage');
+            
+            // Reset message
+            message.style.display = 'none';
+            
+            // Check admin credentials
+            if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+                isAdmin = true;
+                localStorage.setItem('current_user', JSON.stringify({
+                    name: "Administrator",
+                    email: ADMIN_EMAIL,
+                    avatar: "A"
+                }));
+                showAdminPanel();
+            } else {
+                message.textContent = 'Invalid admin credentials. Please try again.';
+                message.className = 'auth-message error-message';
+                message.style.display = 'block';
+            }
+        }
+        
+        // Signup function
+        function signup() {
+            const name = document.getElementById('signupName').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const confirm = document.getElementById('signupConfirm').value;
+            const message = document.getElementById('signupMessage');
+            
+            // Reset message
+            message.style.display = 'none';
+            
+            // Validation
+            if (!name || !email || !password || !confirm) {
+                message.textContent = 'All fields are required';
+                message.className = 'auth-message error-message';
+                message.style.display = 'block';
+                return;
+            }
+            
+            if (password !== confirm) {
+                message.textContent = 'Passwords do not match';
+                message.className = 'auth-message error-message';
+                message.style.display = 'block';
+                return;
+            }
+            
+            // Check password strength
+            const strengthMeter = document.getElementById('passwordStrength');
+            if (parseInt(strengthMeter.style.width) < 75) {
+                message.textContent = 'Password is not strong enough';
+                message.className = 'auth-message error-message';
+                message.style.display = 'block';
+                return;
+            }
+            
+            // Check if user already exists
+            if (users.some(u => u.email === email)) {
+                message.textContent = 'Email address already registered';
+                message.className = 'auth-message error-message';
+                message.style.display = 'block';
+                return;
+            }
+            
+            // Create user avatar initials
+            const nameParts = name.split(' ');
+            const avatar = nameParts.length > 1 ? 
+                nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0) : 
+                name.substring(0, 2);
+            
+            // Create new user
+            const newUser = {
+                name,
+                email,
+                password,
+                avatar: avatar.toUpperCase(),
+                createdAt: new Date().toISOString()
+            };
+            
+            users.push(newUser);
+            localStorage.setItem('phishing_users', JSON.stringify(users));
+            
+            currentUser = newUser;
+            localStorage.setItem('current_user', JSON.stringify(newUser));
+            
+            message.textContent = 'Account created successfully!';
+            message.className = 'auth-message success-message';
+            message.style.display = 'block';
+            
+            setTimeout(() => {
+                showApp();
+            }, 1500);
+        }
+        
+        // Logout function
+        function logout() {
+            localStorage.removeItem('current_user');
+            currentUser = null;
+            isAdmin = false;
+            authContainer.style.display = 'block';
+            appContent.style.display = 'none';
+            adminPanel.style.display = 'none';
+            showLoginForm();
+        }
+        
+        // Admin logout function
+        function adminLogout() {
+            localStorage.removeItem('current_user');
+            currentUser = null;
+            isAdmin = false;
+            authContainer.style.display = 'block';
+            appContent.style.display = 'none';
+            adminPanel.style.display = 'none';
+            showLoginForm();
+        }
+        
+        // Refresh users in admin panel
+        function refreshUsers() {
+            loadUsers();
+        }
+        
+        // Export users data
+        function exportUsers() {
+            const users = JSON.parse(localStorage.getItem('phishing_users')) || [];
+            const dataStr = JSON.stringify(users, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = 'phishing_users.json';
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+        }
+        
+        // Delete a user
+        function deleteUser(email) {
+            if (confirm(`Are you sure you want to delete the user: ${email}?`)) {
+                // Get current users
+                let users = JSON.parse(localStorage.getItem('phishing_users')) || [];
+                
+                // Filter out the user to delete
+                users = users.filter(user => user.email !== email);
+                
+                // Update localStorage
+                localStorage.setItem('phishing_users', JSON.stringify(users));
+                
+                // Reload the table
+                loadUsers();
+                
+                // If the deleted user is the current user, log them out
+                if (currentUser && currentUser.email === email) {
+                    logout();
+                }
+            }
+        }
+        
+        // Delete all users
+        function deleteAllUsers() {
+            if (confirm("Are you sure you want to delete ALL users? This action cannot be undone.")) {
+                // Clear all users
+                localStorage.setItem('phishing_users', JSON.stringify([]));
+                
+                // Reload the table
+                loadUsers();
+                
+                // Logout all users
+                logout();
+            }
+        }
+        
+        // Initialize phishing detector functionality
+        function initPhishingDetector() {
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const emailContent = document.getElementById('emailContent');
+            const emailUrl = document.getElementById('emailUrl');
+            const loading = document.getElementById('loading');
+            const resultSection = document.getElementById('resultSection');
+            const redFlagList = document.getElementById('redFlagList');
+            const urlAnalysis = document.getElementById('urlAnalysis');
+            const protectionList = document.getElementById('protectionList');
+            const resultStatus = document.getElementById('resultStatus');
+            const riskLevel = document.getElementById('riskLevel');
+            const aiAssessment = document.getElementById('aiAssessment');
+            
+            analyzeBtn.addEventListener('click', analyzeContent);
+            clearBtn.addEventListener('click', clearAll);
+            
+            function analyzeContent() {
+                const content = emailContent.value.trim();
+                const url = emailUrl.value.trim();
+                
+                if (!content && !url) {
+                    alert('Please enter email content or a URL to analyze');
+                    return;
+                }
+                
+                // Show loading
+                loading.style.display = 'block';
+                resultSection.style.display = 'none';
+                
+                // Simulate analysis time
+                setTimeout(() => {
+                    loading.style.display = 'none';
+                    resultSection.style.display = 'block';
+                    
+                    // Perform analysis
+                    const analysisResult = analyzeEmailContent(content, url);
+                    
+                    // Display results
+                    displayResults(analysisResult);
+                }, 2000);
+            }
+            
+            function analyzeEmailContent(content, url) {
+                const redFlags = [];
+                const urlFlags = [];
+                let riskScore = 0;
+                
+                // Content analysis
+                const contentLower = content.toLowerCase();
+                
+                if (contentLower.includes('urgent') || contentLower.includes('immediately')) {
+                    redFlags.push({
+                        title: "Urgency Tactics",
+                        description: "Phishing emails often create a false sense of urgency to prompt quick action without proper verification."
+                    });
+                    riskScore += 20;
+                }
+                
+                if (contentLower.includes('password') || contentLower.includes('login')) {
+                    redFlags.push({
+                        title: "Request for Credentials",
+                        description: "Legitimate organizations rarely ask for sensitive information like passwords via email."
+                    });
+                    riskScore += 30;
+                }
+                
+                if (contentLower.includes('click here') || contentLower.includes('verify your account')) {
+                    redFlags.push({
+                        title: "Suspicious Links or Actions",
+                        description: "Emails prompting immediate action through links are often phishing attempts to steal information."
+                    });
+                    riskScore += 25;
+                }
+                
+                if (contentLower.includes('account suspended') || contentLower.includes('security alert')) {
+                    redFlags.push({
+                        title: "Threats or Alarms",
+                        description: "Phishing emails may threaten account suspension to create panic and bypass rational thinking."
+                    });
+                    riskScore += 35;
+                }
+                
+                if (contentLower.includes('dear customer') || contentLower.includes('valued member')) {
+                    redFlags.push({
+                        title: "Generic Greeting",
+                        description: "Legitimate organizations usually address you by name, not generic terms like 'Dear Customer'."
+                    });
+                    riskScore += 15;
+                }
+                
+                // URL analysis
+                if (url) {
+                    if (url.includes('http://') && !url.includes('localhost')) {
+                        urlFlags.push({
+                            title: "Missing HTTPS Encryption",
+                            description: "Legitimate websites, especially those handling sensitive data, use HTTPS. Lack of encryption is suspicious."
+                        });
+                        riskScore += 25;
+                    }
+                    
+                    if (url.includes('@')) {
+                        urlFlags.push({
+                            title: "Suspicious '@' Symbol",
+                            description: "The '@' symbol in a URL can be used to deceive users about the actual destination."
+                        });
+                        riskScore += 30;
+                    }
+                    
+                    if (url.includes('bit.ly') || url.includes('tinyurl.com')) {
+                        urlFlags.push({
+                            title: "URL Shortening Service",
+                            description: "Shortened URLs hide the true destination and are commonly used in phishing to disguise malicious links."
+                        });
+                        riskScore += 20;
+                    }
+                }
+                
+                // Cap risk score at 100
+                riskScore = Math.min(riskScore, 100);
+                
+                // Determine status
+                let status = 'Low Risk';
+                let statusClass = 'safe';
+                
+                if (riskScore > 75) {
+                    status = 'Critical Risk';
+                    statusClass = 'danger';
+                } else if (riskScore > 50) {
+                    status = 'High Risk';
+                    statusClass = 'danger';
+                } else if (riskScore > 25) {
+                    status = 'Medium Risk';
+                    statusClass = 'warning';
+                }
+                
+                // Generate AI assessment
+                let aiText = '';
+                if (riskScore > 75) {
+                    aiText = `<p><strong>Our analysis indicates a high probability of phishing:</strong></p>
+                    <p>This email contains multiple characteristics of phishing attempts. We strongly recommend:</p>
+                    <ul>
+                        <li>Do not click any links in this email</li>
+                        <li>Do not provide any personal information</li>
+                        <li>Delete this email immediately</li>
+                        <li>Report this email to your security team</li>
+                    </ul>`;
+                } else if (riskScore > 50) {
+                    aiText = `<p><strong>Suspicious indicators detected:</strong></p>
+                    <p>This email shows characteristics of phishing attempts. We recommend:</p>
+                    <ul>
+                        <li>Verify the sender through official channels</li>
+                        <li>Do not click links without verification</li>
+                        <li>Check the URL destination carefully</li>
+                        <li>Report suspicious emails to your security team</li>
+                    </ul>`;
+                } else if (riskScore > 0) {
+                    aiText = `<p><strong>Minor concerns detected:</strong></p>
+                    <p>While this email appears legitimate, we recommend:</p>
+                    <ul>
+                        <li>Verify unexpected requests through official channels</li>
+                        <li>Check URLs before clicking</li>
+                        <li>Report anything suspicious to your security team</li>
+                    </ul>`;
+                } else {
+                    aiText = `<p><strong>No significant threats detected:</strong></p>
+                    <p>Our analysis didn't find significant phishing indicators in this email.</p>
+                    <p>As always, remain vigilant with unexpected emails and links.</p>`;
+                }
+                
+                return {
+                    redFlags,
+                    urlFlags,
+                    riskScore,
+                    status,
+                    statusClass,
+                    aiText
+                };
+            }
+            
+            function displayResults(result) {
+                // Clear previous results
+                redFlagList.innerHTML = '';
+                urlAnalysis.innerHTML = '';
+                protectionList.innerHTML = '';
+                
+                // Update risk meter
+                riskLevel.style.width = `${result.riskScore}%`;
+                if (result.riskScore > 75) {
+                    riskLevel.style.background = '#f44336';
+                } else if (result.riskScore > 50) {
+                    riskLevel.style.background = '#ff9800';
+                } else if (result.riskScore > 25) {
+                    riskLevel.style.background = '#ffc107';
+                } else {
+                    riskLevel.style.background = '#4caf50';
+                }
+                
+                // Update status
+                resultStatus.textContent = result.status;
+                resultStatus.style.backgroundColor = result.statusClass === 'danger' ? '#f44336' : 
+                                                    result.statusClass === 'warning' ? '#ff9800' : '#4caf50';
+                resultStatus.style.color = 'white';
+                
+                // Display content red flags
+                if (result.redFlags.length > 0) {
+                    result.redFlags.forEach(flag => {
+                        const flagItem = document.createElement('div');
+                        flagItem.className = 'flag-item';
+                        flagItem.innerHTML = `
+                            <div class="flag-icon"><i class="fas fa-flag" style="color: #f44336"></i></div>
+                            <div class="flag-content">
+                                <h4>${flag.title}</h4>
+                                <p>${flag.description}</p>
+                            </div>
+                        `;
+                        redFlagList.appendChild(flagItem);
+                    });
+                } else {
+                    redFlagList.innerHTML = '<p class="safe-text"><i class="fas fa-check-circle"></i> No obvious phishing indicators detected in email content</p>';
+                }
+                
+                // Display URL analysis
+                if (result.urlFlags.length > 0) {
+                    result.urlFlags.forEach(flag => {
+                        const flagItem = document.createElement('div');
+                        flagItem.className = 'flag-item';
+                        flagItem.innerHTML = `
+                            <div class="flag-icon"><i class="fas fa-link" style="color: #f44336"></i></div>
+                            <div class="flag-content">
+                                <h4>${flag.title}</h4>
+                                <p>${flag.description}</p>
+                            </div>
+                        `;
+                        urlAnalysis.appendChild(flagItem);
+                    });
+                } else if (emailUrl.value.trim()) {
+                    urlAnalysis.innerHTML = '<p class="safe-text"><i class="fas fa-check-circle"></i> No suspicious URL indicators detected</p>';
+                } else {
+                    urlAnalysis.innerHTML = '<p class="safe-text"><i class="fas fa-info-circle"></i> No URL was provided for analysis</p>';
+                }
+                
+                // Display AI assessment
+                aiAssessment.innerHTML = result.aiText;
+                
+                // Always show protection measures
+                const protectionMeasures = [
+                    {
+                        icon: 'fas fa-user-lock',
+                        title: 'Verify Sender Identity',
+                        description: 'Always verify the sender\'s email address. Check for slight misspellings or unusual domain names.'
+                    },
+                    {
+                        icon: 'fas fa-mouse-pointer',
+                        title: 'Hover Before Clicking',
+                        description: 'Hover over links to preview the actual URL before clicking. Ensure it matches the expected destination.'
+                    },
+                    {
+                        icon: 'fas fa-key',
+                        title: 'Use Multi-Factor Authentication',
+                        description: 'Enable MFA on all accounts to add an extra layer of security beyond passwords.'
+                    },
+                    {
+                        icon: 'fas fa-sync-alt',
+                        title: 'Update Regularly',
+                        description: 'Keep your operating system, browser, and security software updated to protect against known vulnerabilities.'
+                    }
+                ];
+                
+                protectionMeasures.forEach(measure => {
+                    const card = document.createElement('div');
+                    card.className = 'protection-card';
+                    card.innerHTML = `
+                        <div class="protection-icon">
+                            <i class="${measure.icon}"></i>
+                        </div>
+                        <div class="protection-content">
+                            <h4>${measure.title}</h4>
+                            <p>${measure.description}</p>
+                        </div>
+                    `;
+                    protectionList.appendChild(card);
+                });
+            }
+            
+            function clearAll() {
+                emailContent.value = '';
+                emailUrl.value = '';
+                resultSection.style.display = 'none';
+                resultStatus.textContent = 'Checking...';
+                resultStatus.style.backgroundColor = '';
+                resultStatus.style.color = '';
+                riskLevel.style.width = '0%';
+            }
+        }
+        
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            checkSession();
+        });
+    </script>
+</body>
+</html>
